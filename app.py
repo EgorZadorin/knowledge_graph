@@ -1,4 +1,5 @@
 import pdfplumber
+import pandas as pd
 import pyparsing as pp
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -74,32 +75,58 @@ def hierarchy_pos(g, root=None, width=1., vert_gap=0.2, vert_loc=0, xcenter=0.5)
 
 def graph():
 
-    # categories = ["Человеческие, организационные и нормативные аспекты"]
+    g_root = ["Модель навыков\nкибербезопасности"]
 
-    # domains = [
-    #    "Управление рисками и непрерывностью бизнеса", "Юридические и нормативные аспекты ИБ",
-    #    "Человеческие факторы в ИБ", "ИБ онлайн-деятельности"
-    # ]
+    g_categories = ["Безопасность\nсистем"]
 
-    data = [
-        [categories[0], domains[0]],
-        [categories[0], domains[1]],
-        [categories[0], domains[2]],
-        [categories[0], domains[3]],
+    g_domains = ["Криптография\n(КР)"]
+
+    g_modules = [
+        "Математические\nосновы КР", "Модели\nКР защиты",
+        "Симметричное\nшифрование и\nаутентификация", "Асимметричная\nкриптография",
+        "Криптографические\nпротоколы"
     ]
 
+    g_skills = [
+        "Знание\nматематических\nоснов\nкриптографии", "Знание алгоритмов\nна основе\nэллиптических\nкривых",
+        "Владение принципами\nпостроения и применения\nмоделей нарушителя",
+        "Владение методами\nкриптографической защиты данных\nсимметричными механизмами",
+        "Владение методами\nассиметричного шифрования\n и электронной подписи",
+        "Знание основных типов\nкриптографических протоколов"
+    ]
+
+    data = [
+        [g_root[0], g_categories[0]],
+        [g_categories[0], g_domains[0]],
+        [g_domains[0], g_modules[0]],
+        [g_domains[0], g_modules[1]],
+        [g_domains[0], g_modules[2]],
+        [g_domains[0], g_modules[3]],
+        [g_domains[0], g_modules[4]],
+        [g_modules[0], g_skills[0]],
+        [g_modules[0], g_skills[1]],
+        [g_modules[1], g_skills[2]],
+        [g_modules[2], g_skills[3]],
+        [g_modules[3], g_skills[4]],
+        [g_modules[4], g_skills[5]],
+    ]
+
+    modules_weights = [12, 8, 6, 6, 8]
+
     weights = {
-        categories[0]: 4,
-        domains[0]: 2, domains[1]: 2, domains[2]: 2, domains[3]: 2
+        g_root[0]: 25, g_categories[0]: 20, g_domains[0]: 15
     }
+    weights.update({g_modules[k]: modules_weights[k] for k in range(len(g_modules))})
+    weights.update({g_skills[m]: 6 for m in range(len(g_skills))})
+
     attrs = {key: {"weight": val} for key, val in weights.items()}
     g = nx.Graph()
     g.add_edges_from(data)
-    pos = hierarchy_pos(g, categories[0])
+    pos = hierarchy_pos(g, g_root[0])
     nx.set_node_attributes(g, attrs)
     node_size = [a["weight"] * 600 for n, a in g.nodes(data=True)]
-    fig, ax = plt.subplots(figsize=(10, 10))
-    nx.draw(g, pos=pos, with_labels=True, node_size=node_size, ax=ax)
+    fig, ax = plt.subplots(figsize=(20, 20))
+    nx.draw(g, pos=pos, edgecolors='lightgrey', node_color='lightyellow', with_labels=True, node_size=node_size, ax=ax)
 
 
 if __name__ == "__main__":
@@ -140,7 +167,18 @@ if __name__ == "__main__":
         domains.append(tokens[1])
         # print(tokens)
 
-    # skills
+    content = ''
+    with pdfplumber.open(path_pdf) as pdf:
+        page = pdf.pages[60]
+        tables = page.extract_tables()
+        for table in tables:
+            df = pd.DataFrame(table)
+            print(df)
+
+    pdf.close()
+
+    keyword_skill = pp.Word("Навыки-цели")
+    # до "/"
 
     print(categories, "\n", len(categories))
     print(domains, "\n", len(domains))
@@ -160,3 +198,7 @@ if __name__ == "__main__":
     
     plt.show()
     """
+
+    graph()
+
+    plt.show()
