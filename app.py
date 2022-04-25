@@ -1,9 +1,10 @@
-import pdfplumber as pp
+import pdfplumber
+import pyparsing as pp
 import networkx as nx
 import matplotlib.pyplot as plt
 import random
 
-path_pdf = 'Lib/Curricula.pdf'
+path_pdf = 'Lib/Curriculum.pdf'
 
 
 def _hierarchy_pos(g, root, width=1., vert_gap=0.2, vert_loc=0.0, xcenter=0.5, pos=None, parent=None):
@@ -73,7 +74,7 @@ def hierarchy_pos(g, root=None, width=1., vert_gap=0.2, vert_loc=0, xcenter=0.5)
 
 def graph():
 
-    categories = ["Человеческие, организационные и нормативные аспекты"]
+    # categories = ["Человеческие, организационные и нормативные аспекты"]
 
     domains = [
         "Управление рисками и непрерывностью бизнеса", "Юридические и нормативные аспекты ИБ",
@@ -88,8 +89,8 @@ def graph():
     ]
 
     weights = {
-        categories[0]: 16,
-        domains[0]: 8, domains[1]: 8, domains[2]: 8, domains[3]: 8
+        categories[0]: 4,
+        domains[0]: 2, domains[1]: 2, domains[2]: 2, domains[3]: 2
     }
     attrs = {key: {"weight": val} for key, val in weights.items()}
     g = nx.Graph()
@@ -103,23 +104,37 @@ def graph():
 
 if __name__ == "__main__":
     content = ''
-    with pp.open(path_pdf) as pdf:
-        for i in range(5, 7):  # (len(pdf.pages)):
+    with pdfplumber.open(path_pdf) as pdf:
+        for i in range(4, 7):  # (len(pdf.pages)):
             page = pdf.pages[i]
             page_content = '\n'.join(page.extract_text().split('\n')[:-1])
             content = content + page_content
     pdf.close()
     print(content)
+    print()
 
-    # Категории свода знаний специальности кибербезопасность categories = []
+    categories = []
+    rus_alphas = 'йцукенгшщзхъфывапролджэячсмитьбюЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ'
+    category_name = pp.Word(pp.alphas + rus_alphas + ' ' + ',' + '-')
+    end_of_cat = pp.Regex(r"[/(-a-z»]")
+    parse_cat = 'Категория «' + category_name + end_of_cat
+    for tokens in parse_cat.searchString(content):
+        categories.append(tokens[1])
+        print(tokens)
+    print(categories)
 
-    # Подкатегории-домены для каждой категории domains = []
+    """
+    Категории свода знаний специальности кибербезопасность categories = []
 
-    # Модули доменов modules = []
+    Подкатегории-домены для каждой категории domains = []
 
-    # Темы-результаты модулей results = []
+    Модули доменов modules = []
 
-    # Навыки-цели skills = []
+    Темы-результаты модулей results = []
 
-    graph()
+    Навыки-цели skills = []
+
+    Рисуем граф graph()
+    
     plt.show()
+    """
