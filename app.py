@@ -132,15 +132,18 @@ if __name__ == "__main__":
         categories.append(tokens[1])
         # print(tokens)
 
-    domain_name = pp.Word(rus_alphas + ' ' + '-')
+    domain_name = pp.Word(rus_alphas + ' ' + ',' + pp.nums)
     end_of_dom = pp.Word(rus_alphas_big)
-    parse_dom = pp.Regex(r"[1-9]+\.[1-9]+\.") + domain_name + '–' + end_of_dom
+    dash = pp.Word('-' + '–')
+    parse_dom = pp.Regex(r"[1-9]+\.[1-9]+\.") + domain_name + dash + end_of_dom
     for tokens in parse_dom.searchString(content):
         domains.append(tokens[1])
         # print(tokens)
 
-    print(categories)
-    print(domains)
+    # skills
+
+    print(categories, "\n", len(categories))
+    print(domains, "\n", len(domains))
 
     """
     Категории свода знаний специальности кибербезопасность categories = []
