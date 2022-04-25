@@ -76,10 +76,10 @@ def graph():
 
     # categories = ["Человеческие, организационные и нормативные аспекты"]
 
-    domains = [
-        "Управление рисками и непрерывностью бизнеса", "Юридические и нормативные аспекты ИБ",
-        "Человеческие факторы в ИБ", "ИБ онлайн-деятельности"
-    ]
+    # domains = [
+    #    "Управление рисками и непрерывностью бизнеса", "Юридические и нормативные аспекты ИБ",
+    #    "Человеческие факторы в ИБ", "ИБ онлайн-деятельности"
+    # ]
 
     data = [
         [categories[0], domains[0]],
@@ -103,6 +103,10 @@ def graph():
 
 
 if __name__ == "__main__":
+
+    # Открываем pdf-документ “Curriculum” с помощью pdfplumber,
+    # копируем содержание страниц 4-7 в строку “content” для выделения категорий и доменов, закрываем документ
+
     content = ''
     with pdfplumber.open(path_pdf) as pdf:
         for i in range(4, 7):  # (len(pdf.pages)):
@@ -110,18 +114,33 @@ if __name__ == "__main__":
             page_content = '\n'.join(page.extract_text().split('\n')[:-1])
             content = content + page_content
     pdf.close()
-    print(content)
-    print()
+
+    # С помощью синтаксического анализа текста на основе формальной грамматики и регулярных выражений
+    # выделяем названия категорий и подкатегорий и записываем их в строковые массивы "categories" и "domains"
+    # для хранения категорий и доменов соответственно
 
     categories = []
+    domains = []
+
     rus_alphas = 'йцукенгшщзхъфывапролджэячсмитьбюЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ'
+    rus_alphas_big = 'ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ'
+
     category_name = pp.Word(pp.alphas + rus_alphas + ' ' + ',' + '-')
-    end_of_cat = pp.Regex(r"[/(-a-z»]")
+    end_of_cat = pp.Regex(r"[\(-a-z»]")
     parse_cat = 'Категория «' + category_name + end_of_cat
     for tokens in parse_cat.searchString(content):
         categories.append(tokens[1])
-        print(tokens)
+        # print(tokens)
+
+    domain_name = pp.Word(rus_alphas + ' ' + '-')
+    end_of_dom = pp.Word(rus_alphas_big)
+    parse_dom = pp.Regex(r"[1-9]+\.[1-9]+\.") + domain_name + '–' + end_of_dom
+    for tokens in parse_dom.searchString(content):
+        domains.append(tokens[1])
+        # print(tokens)
+
     print(categories)
+    print(domains)
 
     """
     Категории свода знаний специальности кибербезопасность categories = []
